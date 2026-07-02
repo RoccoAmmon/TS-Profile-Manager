@@ -1,0 +1,17 @@
+# Config
+TS-Profile-Manager.config.json
+
+# PowerShell
+*.ps1~*
+*.ps1.bak
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Temp
+*.tmp
+*.log
