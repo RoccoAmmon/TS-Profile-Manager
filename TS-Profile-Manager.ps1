@@ -1,13 +1,13 @@
 ﻿<#
 .SYNOPSIS
-    Terminal Server Profile Manager v1.0.0 - WPF Edition
+    Terminal Server Profile Manager v1.0.1 - WPF Edition
 
 .DESCRIPTION
     Moderne WPF-GUI zur Verwaltung von Terminalserver-Profilen auf mehreren Freigaben.
-    Mit sortierbarer DataGrid, Konfigurations-Persistenz und modernem Design.
+    Mit sortierbarer DataGrid, Konfigurations-Persistenz, Filter und modernem Design.
 
 .NOTES
-    Version: 1.0.0
+    Version: 1.0.1
     Author:  Rocco Ammon
 #>
 
@@ -139,8 +139,9 @@ function Show-ConfigurationDialog {
                 <TextBlock Grid.Row="4" Text="Freigabe:" FontSize="10" Margin="0,4,0,0"/>
                 <TextBox Grid.Row="5" x:Name="txtProfShare" FontSize="11" Margin="0,2,0,0"/>
                 <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,6,0,0">
-                    <Button x:Name="btnProfAdd" Content="Hinzufuegen" Width="120" Height="26" Background="#2ECC71" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0"/>
-                    <Button x:Name="btnProfRemove" Content="Entfernen" Width="120" Height="26" Background="#E74C3C" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                    <Button x:Name="btnProfAdd" Content="Hinzufuegen" Width="100" Height="26" Background="#2ECC71" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,4,0"/>
+                    <Button x:Name="btnProfEdit" Content="Aendern" Width="80" Height="26" Background="#F39C12" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,4,0"/>
+                    <Button x:Name="btnProfRemove" Content="Entfernen" Width="85" Height="26" Background="#E74C3C" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -163,8 +164,9 @@ function Show-ConfigurationDialog {
                 <TextBlock Grid.Row="4" Text="Freigabe:" FontSize="10" Margin="0,4,0,0"/>
                 <TextBox Grid.Row="5" x:Name="txtRepShare" FontSize="11" Margin="0,2,0,0"/>
                 <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,6,0,0">
-                    <Button x:Name="btnRepAdd" Content="Hinzufuegen" Width="120" Height="26" Background="#2ECC71" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0"/>
-                    <Button x:Name="btnRepRemove" Content="Entfernen" Width="120" Height="26" Background="#E74C3C" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                    <Button x:Name="btnRepAdd" Content="Hinzufuegen" Width="100" Height="26" Background="#2ECC71" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,4,0"/>
+                    <Button x:Name="btnRepEdit" Content="Aendern" Width="80" Height="26" Background="#F39C12" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,4,0"/>
+                    <Button x:Name="btnRepRemove" Content="Entfernen" Width="85" Height="26" Background="#E74C3C" Foreground="White" BorderThickness="0" Cursor="Hand"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -184,26 +186,20 @@ function Show-ConfigurationDialog {
     $txtProfServer = $win.FindName("txtProfServer")
     $txtProfShare  = $win.FindName("txtProfShare")
     $btnProfAdd    = $win.FindName("btnProfAdd")
+    $btnProfEdit   = $win.FindName("btnProfEdit")
     $btnProfRemove = $win.FindName("btnProfRemove")
     $lbReplicas    = $win.FindName("lbReplicas")
     $txtRepServer  = $win.FindName("txtRepServer")
     $txtRepShare   = $win.FindName("txtRepShare")
     $btnRepAdd     = $win.FindName("btnRepAdd")
+    $btnRepEdit    = $win.FindName("btnRepEdit")
     $btnRepRemove  = $win.FindName("btnRepRemove")
     $btnOK         = $win.FindName("btnOK")
     $btnCancel     = $win.FindName("btnCancel")
 
     # Gespeicherte Pfade vorladen
-    if ($script:ProfilePaths.Count -gt 0) {
-        foreach ($p in $script:ProfilePaths) { $lbProfiles.Items.Add($p) | Out-Null }
-    } else {
-        $lbProfiles.Items.Add("\\sv-lu-cxfs01\profiles$") | Out-Null
-    }
-    if ($script:ReplicaPaths.Count -gt 0) {
-        foreach ($p in $script:ReplicaPaths) { $lbReplicas.Items.Add($p) | Out-Null }
-    } else {
-        $lbReplicas.Items.Add("\\sv-lu-cxfs02\profilesreplica$") | Out-Null
-    }
+    foreach ($p in $script:ProfilePaths) { $lbProfiles.Items.Add($p) | Out-Null }
+    foreach ($p in $script:ReplicaPaths) { $lbReplicas.Items.Add($p) | Out-Null }
 
     $btnProfAdd.Add_Click({
         $s = $txtProfServer.Text.Trim(); $h = $txtProfShare.Text.Trim()
@@ -212,6 +208,15 @@ function Show-ConfigurationDialog {
         if ($lbProfiles.Items -notcontains $p) { $lbProfiles.Items.Add($p) | Out-Null; $txtProfServer.Clear(); $txtProfShare.Clear(); $txtProfServer.Focus() }
     })
     $btnProfRemove.Add_Click({ if ($lbProfiles.SelectedItem) { $lbProfiles.Items.Remove($lbProfiles.SelectedItem) } })
+    $btnProfEdit.Add_Click({
+        $sel = $lbProfiles.SelectedItem
+        if (-not $sel) { return }
+        if ($sel -match '^\\\\(.+?)\\(.+)$') {
+            $txtProfServer.Text = $matches[1]; $txtProfShare.Text = $matches[2]
+            $lbProfiles.Items.Remove($sel)
+            $txtProfServer.Focus()
+        }
+    })
 
     $btnRepAdd.Add_Click({
         $s = $txtRepServer.Text.Trim(); $h = $txtRepShare.Text.Trim()
@@ -220,6 +225,15 @@ function Show-ConfigurationDialog {
         if ($lbReplicas.Items -notcontains $p) { $lbReplicas.Items.Add($p) | Out-Null; $txtRepServer.Clear(); $txtRepShare.Clear(); $txtRepServer.Focus() }
     })
     $btnRepRemove.Add_Click({ if ($lbReplicas.SelectedItem) { $lbReplicas.Items.Remove($lbReplicas.SelectedItem) } })
+    $btnRepEdit.Add_Click({
+        $sel = $lbReplicas.SelectedItem
+        if (-not $sel) { return }
+        if ($sel -match '^\\\\(.+?)\\(.+)$') {
+            $txtRepServer.Text = $matches[1]; $txtRepShare.Text = $matches[2]
+            $lbReplicas.Items.Remove($sel)
+            $txtRepServer.Focus()
+        }
+    })
 
     # OK schliesst mit DialogResult=$true
     $btnOK.Add_Click({ $win.DialogResult = $true })
@@ -433,7 +447,7 @@ function Initialize-GUI {
     $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="TS Profile Manager v1.0.0"
+        Title="TS Profile Manager v1.0.1"
         Height="600" Width="800" MinWidth="700" MinHeight="500"
         WindowStartupLocation="Manual"
         ResizeMode="CanResize"
@@ -532,7 +546,7 @@ function Initialize-GUI {
         </StatusBar>
 
         <!-- Copyright -->
-        <TextBlock Grid.Row="7" x:Name="lblCopyright" Text="(c) 2025-2026 Rocco Ammon - TS Profile Manager v1.0.0" Margin="18,2,0,5" FontSize="9" Foreground="Gray"/>
+        <TextBlock Grid.Row="7" x:Name="lblCopyright" Text="(c) 2025-2026 Rocco Ammon - TS Profile Manager v1.0.1" Margin="18,2,0,5" FontSize="9" Foreground="Gray"/>
     </Grid>
 </Window>
 '@
@@ -561,7 +575,7 @@ function Initialize-GUI {
     $script:WPF_MainWindow.FindName("btnConfig").Add_Click({
         $script:WPF_MainWindow.Close()
         $script:AllPaths = @()
-        Start-ProfileManager
+        Start-ProfileManager -Force
     })
     $script:WPF_MainWindow.FindName("btnExport").Add_Click({
         try {
@@ -645,13 +659,14 @@ function Initialize-GUI {
 
 #region Hauptprogramm
 function Start-ProfileManager {
+    param([switch]$Force)
     try {
         Write-Log -Message "TS Profile Manager v2.0 WPF gestartet"
 
-        # Gespeicherte Konfiguration laden
-        Load-Config
+        # Gespeicherte Konfiguration laden (ausser bei erzwungenem Dialog)
+        if (-not $Force) { Load-Config }
 
-        if ($script:AllPaths.Count -eq 0) {
+        if ($Force -or $script:AllPaths.Count -eq 0) {
             $configured = Show-ConfigurationDialog
             if (-not $configured) {
                 Write-Log -Message "Abbruch durch Benutzer" -Type Warning

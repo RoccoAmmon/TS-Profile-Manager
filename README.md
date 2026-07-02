@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?logo=powershell&logoColor=white" alt="PowerShell">
   <img src="https://img.shields.io/badge/.NET-Framework%204.5%2B-512BD4?logo=dotnet&logoColor=white" alt=".NET">
   <img src="https://img.shields.io/badge/WPF-GUI-00C853?logo=windows&logoColor=white" alt="WPF">
-  <img src="https://img.shields.io/badge/Version-1.0.0-FF6F00" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.0.1-FF6F00" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
