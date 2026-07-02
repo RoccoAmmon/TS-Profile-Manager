@@ -434,8 +434,8 @@ function Initialize-GUI {
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="TS Profile Manager v1.0.0"
-        Height="680" Width="850" MinWidth="700" MinHeight="500"
-        WindowStartupLocation="CenterScreen"
+        Height="600" Width="800" MinWidth="700" MinHeight="500"
+        WindowStartupLocation="Manual"
         ResizeMode="CanResize"
         Background="#F2F2F7"
         FontFamily="Segoe UI">
@@ -540,6 +540,13 @@ function Initialize-GUI {
     $reader = New-Object System.IO.StringReader($xaml)
     $xmlReader = [System.Xml.XmlReader]::Create($reader)
     $script:WPF_MainWindow = [Windows.Markup.XamlReader]::Load($xmlReader)
+
+    # Fenster auf 80% der Bildschirmgroesse setzen
+    $screen = [System.Windows.SystemParameters]::WorkArea
+    $script:WPF_MainWindow.Width  = [math]::Round($screen.Width  * 0.80)
+    $script:WPF_MainWindow.Height = [math]::Round($screen.Height * 0.80)
+    $script:WPF_MainWindow.Left   = [math]::Round(($screen.Width  - $script:WPF_MainWindow.Width)  / 2)
+    $script:WPF_MainWindow.Top    = [math]::Round(($screen.Height - $script:WPF_MainWindow.Height) / 2)
 
     # Pfad-Info befuellen
     $pathLines = @()
