@@ -8,7 +8,7 @@ mit gleichem Design ersetzt (Datei weiterhin `TS-Profile-Manager.ps1`).
 - **WinForms-Neubau** mit OwnerDraw-ListView, dunklem Header und alternierenden
   Zeilenfarben – optisch gleich zur WPF-Version, aber deutlich performanter
 - **NEU: Alias-Spalte** (ganz links) – Benutzername aus dem Profilnamen
-  abgeleitet: hinter `Profile_` und ohne Dateiendung (`Profile_barazi.VHDX` → `barazi`);
+  abgeleitet: hinter `Profile_` und ohne Dateiendung (`Profile_Mustermann.VHDX` → `Mustermann`);
   falls der Ordner keine VHDX enthält, wird der Ordnernamen verwendet
 - **NEU: Mehrfachauswahl** per Strg-/Shift-Klick; Statusleiste zeigt Anzahl,
   Gesamtgroesse und Namen; `Entf` loescht die Auswahl, Doppelklick oeffnet den Explorer
