@@ -7,7 +7,7 @@
     Vollstaendig ueberarbeitete Version (WinForms, Design der WPF-Vorlage) mit:
     - Moderne GUI mit OwnerDraw-ListView und 6 Spalten
     - NEU: Spalte "Alias" (ganz links), aus dem Profilnamen abgeleitet,
-      z.B. "Profile_barazi.VHDX" -> "barazi"
+      z.B. "Profile_Mustermann.VHDX" -> "Mustermann"
     - NEU: Mehrfachauswahl per Strg-/Shift-Klick; die Statusleiste zeigt
       Anzahl, Gesamtgroesse und Namen der Auswahl
     - NEU: Paralleles Laden von Groesse und Zugriffsdatum ueber einen
@@ -94,7 +94,7 @@
                      "Letzter Zugriff: AN/AUS" (wie Groessen: AN/AUS, Wert wird in
                      der Konfigurationsdatei gespeichert)
                    - NEU: Spalte "Alias" (ganz links) aus dem Profilnamen
-                     abgeleitet, z.B. "Profile_barazi.VHDX" -> "barazi"
+                     abgeleitet, z.B. "Profile_Mustermann.VHDX" -> "Mustermann"
                    - NEU: Mehrfachauswahl per Strg-/Shift-Klick inkl.
                      Statusanzeige (Anzahl, Gesamtgroesse, Namen)
                    - NEU: Paralleles Laden von Groesse/Zugriffsdatum ueber
