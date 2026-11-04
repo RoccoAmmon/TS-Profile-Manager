@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.6 (2026-11-04)
+
+Kompletter Relaunch: Die WPF-Version wird durch eine schnellerere WinForms-Version
+mit gleichem Design ersetzt (Datei weiterhin `TS-Profile-Manager.ps1`).
+
+- **WinForms-Neubau** mit OwnerDraw-ListView, dunklem Header und alternierenden
+  Zeilenfarben – optisch gleich zur WPF-Version, aber deutlich performanter
+- **NEU: Alias-Spalte** (ganz links) – Benutzername aus dem Profilnamen
+  abgeleitet: hinter `Profile_` und ohne Dateiendung (`Profile_barazi.VHDX` → `barazi`);
+  falls der Ordner keine VHDX enthält, wird der Ordnernamen verwendet
+- **NEU: Mehrfachauswahl** per Strg-/Shift-Klick; Statusleiste zeigt Anzahl,
+  Gesamtgroesse und Namen; `Entf` loescht die Auswahl, Doppelklick oeffnet den Explorer
+- **NEU: Paralleles Laden** von Groesse und Zugriffsdatum ueber einen RunspacePool;
+  Thread-Anzahl konfigurierbar ueber `$script:MaxLoadThreads` im Skriptanfang (Standard 10)
+- **NEU: Dynamisch resizable Fenster** (Standard 1300x740, Minimum 1150x620)
+  statt fester Groesse
+- **Sortierung** nach Alias (Standard), Name, Groesse, Serverstatus oder letztem Zugriff
+- **Suchfilter** prueft jetzt Name und Alias
+- **CSV-Export** enthaelt die Alias-Spalte
+- Performance-Optimierungen: Spaltenbreiten-Cache, gecachte Zeichenobjekte,
+  DoubleBuffered-Liste, Debounce-Timer fuer die Statusleiste
+- Konfigurationsdatei: `TSProfileManagerConfig.json` (ServerPairs, ShowSizes, ShowLastAccess)
+
 ## 1.0.1 (2026-07-02)
 
 - Beispiel-Shares aus Konfigurationsdialog entfernt

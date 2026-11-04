@@ -1,5 +1,6 @@
 # Config
 TS-Profile-Manager.config.json
+TSProfileManagerConfig.json
 
 # PowerShell
 *.ps1~*
