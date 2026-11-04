@@ -19,7 +19,7 @@
 | Feature | Beschreibung |
 |---------|-------------|
 | :computer: **Multi-Freigabe** | Beliebig viele Profil- und Replika-Freigaben gleichzeitig verwalten |
-| :label: **Alias-Spalte** | Benutzername direkt aus dem Profilnamen abgeleitet (z.B. `Profile_barazi.VHDX` → `barazi`) |
+| :label: **Alias-Spalte** | Benutzername direkt aus dem Profilnamen abgeleitet (z.B. `Profile_Mustermann.VHDX` → `Mustermann`) |
 | :point_left: **Mehrfachauswahl** | Mehrere Profile per Strg-/Shift-Klick auswaehlen; Statusleiste zeigt Anzahl, Gesamtgroesse und Namen |
 | :zap: **Paralleles Laden** | Groesse und Zugriffsdatum aller Profile werden parallel abgerufen (Thread-Anzahl via `$script:MaxLoadThreads` im Skriptanfang, Standard 10) |
 | :arrow_up_down: **Sortierbare Spalten** | Nach Alias, Name, Groesse, Serverstatus oder letztem Zugriff sortieren |
