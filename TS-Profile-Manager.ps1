@@ -484,8 +484,8 @@ function Get-ProfileAlias {
     .DESCRIPTION
         Entfernt die Dateiendung (.VHDX/.VHD) und ein fuehrendes
         "Profile_"-Praefix. Beispiele:
-          "Profile_barazi.VHDX" -> "barazi"
-          "barazi"              -> "barazi"
+          "Profile_Mustermann.VHDX" -> "Mustermann"
+          "Mustermann"              -> "Mustermann"
     .PARAMETER Name
         Profilname (Ordner- oder Dateiname)
     .OUTPUTS
@@ -1156,7 +1156,7 @@ function Get-ProfileListWithSizes {
                         if ($exists2) { $access2 = $item2.LastAccessTime }
 
                         # Alias-Quelle: VHDX-Datei im Profilordner (Root),
-                        # z.B. "Profile_barazi.VHDX" -> "barazi".
+                        # z.B. "Profile_Mustermann.VHDX" -> "Mustermann".
                         # Nur suchen, wenn der Eintragsname nicht schon
                         # "Profile_*" lautet (sparst einen Netzwerk-Abruf).
                         if ($n -notlike 'Profile_*') {
