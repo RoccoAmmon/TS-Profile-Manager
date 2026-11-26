@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.7
+
+- **NEU: Spalte "Erstellt"** (ganz rechts) – Erstellungsdatum der VHDX-Datei,
+  sortierbar und im CSV-Export enthalten
+- Profil-Buttons oben: Breite richtet sich nach der Textbreite, sodass auch
+  laengere Namen (z.B. "MedicoTest") vollstaendig angezeigt werden
+
 ## 2.6 (2026-11-04)
 
 Kompletter Relaunch: Die WPF-Version wird durch eine schnellerere WinForms-Version

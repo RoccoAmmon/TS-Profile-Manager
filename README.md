@@ -4,8 +4,12 @@
   <img src="https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?logo=powershell&logoColor=white" alt="PowerShell">
   <img src="https://img.shields.io/badge/.NET-Framework%204.5%2B-512BD4?logo=dotnet&logoColor=white" alt=".NET">
   <img src="https://img.shields.io/badge/WinForms-GUI-00C853?logo=windows&logoColor=white" alt="WinForms">
-  <img src="https://img.shields.io/badge/Version-2.6-FF6F00" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.7-FF6F00" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+</p>
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/roccoammon"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=roccoammon&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
 </p>
 
 <p align="center">

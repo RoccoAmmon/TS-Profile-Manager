@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Terminal Server Profile Manager v2.6 - WinForms-GUI mit Alias-Spalte,
+    Terminal Server Profile Manager v2.7 - WinForms-GUI mit Alias-Spalte,
     Suchfilter, Mehrfachauswahl und parallelem Laden der Profil-Details
 
 .DESCRIPTION
     Vollstaendig ueberarbeitete Version (WinForms, Design der WPF-Vorlage) mit:
-    - Moderne GUI mit OwnerDraw-ListView und 6 Spalten
+    - Moderne GUI mit OwnerDraw-ListView und 7 Spalten
     - NEU: Spalte "Alias" (ganz links), aus dem Profilnamen abgeleitet,
       z.B. "Profile_Mustermann.VHDX" -> "Mustermann"
     - NEU: Mehrfachauswahl per Strg-/Shift-Klick; die Statusleiste zeigt
@@ -102,8 +102,11 @@
                      (Variable im Skriptanfang, Standard 10)
                    - NEU: Dynamisch resizable Fenster (Standard 1300x740,
                      Minimum 1150x620)
+    Version: 2.7 - NEU: Spalte "Erstellt" (ganz rechts) mit dem Erstellungsdatum
+                   der VHDX-Datei im Profilordner (Server 1, sonst Server 2),
+                   auch sortierbar und im CSV-Export enthalten
     Autor:   Rocco Ammon
-    Datum:   2025-2026
+    Datum:   2026-11-26
 
 .EXAMPLE
     .\TS-Profile-Manager.ps1
@@ -265,8 +268,8 @@ $script:MaxLoadThreads             = 10
 # --- Sortierung (Standard: nach Alias/Name aufsteigend) ---
 $script:SortColumn              = 0
 $script:SortAscending           = $true
-$script:ColumnNames             = @("Alias", "Name", "Groesse", "Server 1", "Server 2", "Letzter Zugriff")
-$script:ColumnWidths            = @(170, 490, 140, 150, 150, 170)
+$script:ColumnNames             = @("Alias", "Name", "Groesse", "Server 1", "Server 2", "Letzter Zugriff", "Erstellt")
+$script:ColumnWidths            = @(170, 490, 140, 150, 150, 170, 150)
 
 # --- Schriftart-Einstellungen (aenderbar ueber GUI oder Parameter) ---
 $script:ListViewFontName        = $ListViewFontName
@@ -651,6 +654,60 @@ function Select-ProfilePair {
     Refresh-ProfileList
 }
 
+function Get-PairButtonFont {
+    New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Bold)
+}
+
+function Get-PairButtonLayout {
+    <#
+    .SYNOPSIS
+        Berechnet X-Position und Breite je Profilpaar-Button anhand der gemessenen
+        Beschriftung. Die Buttons fuellen immer den gleichen Bereich rechts oben.
+    #>
+    param(
+        [string[]]$Labels,
+        [int]$Right
+    )
+    $areaWidth = 603
+    $gap       = 6
+    $minWidth  = 50
+    $padding   = 16
+    $count     = $Labels.Count
+    if ($count -eq 0) { return @() }
+
+    $font = Get-PairButtonFont
+    try {
+        $needs = @()
+        foreach ($l in $Labels) {
+            $needs += [Math]::Max($minWidth, [System.Windows.Forms.TextRenderer]::MeasureText([string]$l, $font).Width + $padding)
+        }
+    }
+    finally {
+        $font.Dispose()
+    }
+
+    $avail   = $areaWidth - ($count - 1) * $gap
+    $sumNeed = ($needs | Measure-Object -Sum).Sum
+    $widths  = @()
+    if ($sumNeed -le $avail) {
+        $share = [Math]::Floor(($avail - $sumNeed) / $count)
+        foreach ($n in $needs) { $widths += [int]($n + $share) }
+        $rest = $avail - ($widths | Measure-Object -Sum).Sum
+        $widths[$count - 1] += $rest
+    }
+    else {
+        foreach ($n in $needs) { $widths += [int][Math]::Floor($n * $avail / $sumNeed) }
+    }
+
+    $result = @()
+    $x      = $Right - $areaWidth
+    for ($i = 0; $i -lt $count; $i++) {
+        $result += [PSCustomObject]@{ X = [int]$x; Width = [int]$widths[$i] }
+        $x      += $widths[$i] + $gap
+    }
+    return $result
+}
+
 function New-PairButtons {
     <#
     .SYNOPSIS
@@ -675,22 +732,22 @@ function New-PairButtons {
 
         # Rechte Kante und Startposition wie die Schalter-Reile darunter
         $right     = $script:Form.ClientSize.Width - 18
-        $pairLeft  = $right - 603
-        $pairTop   = 82
+        $pairLeft   = $right - 603
+        $pairTop    = 82
         $pairHeight = 24
-        $pairGap   = 6
-        $areaWidth = $right - $pairLeft
-        $pairWidth = [Math]::Max(80, [Math]::Floor(($areaWidth - ($pairCount - 1) * $pairGap) / $pairCount))
+        $pairGap    = 6
+        $labels     = @($script:ServerPairs | ForEach-Object { [string]$_.Name })
+        $layout     = @(Get-PairButtonLayout -Labels $labels -Right $right)
 
         for ($i = 0; $i -lt $pairCount; $i++) {
             $pair    = $script:ServerPairs[$i]
             $btn     = New-Object System.Windows.Forms.Button
-            $btnX    = [int]($right - ($pairCount * $pairWidth + ($pairCount - 1) * $pairGap) + $i * ($pairWidth + $pairGap))
             $btn.Text          = $pair.Name
-            $btn.Location      = [System.Drawing.Point]::new($btnX, $pairTop)
-            $btn.Size          = [System.Drawing.Size]::new([int]$pairWidth, [int]$pairHeight)
+            $btn.Location      = [System.Drawing.Point]::new($layout[$i].X, $pairTop)
+            $btn.Size          = [System.Drawing.Size]::new($layout[$i].Width, [int]$pairHeight)
             $btn.FlatStyle     = [System.Windows.Forms.FlatStyle]::Flat
-            $btn.Font          = New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Bold)
+            $btn.Font          = Get-PairButtonFont
+            $btn.AutoEllipsis  = $true
             $btn.Cursor        = [System.Windows.Forms.Cursors]::Hand
             $btn.Tag           = $i
             $btn.Add_Click({
@@ -1145,6 +1202,8 @@ function Get-ProfileListWithSizes {
                     $exists1  = $false
                     $exists2  = $false
                     $aliasSrc = $n
+                    $vhdx     = $null
+                    $vhdxCreated = $null
                     try {
                         # Zugriffsdatum ZUERST lesen (Get-ChildItem -Recurse
                         # aktualisiert das LastAccessTime mancher Systeme)
@@ -1155,19 +1214,19 @@ function Get-ProfileListWithSizes {
                         if ($exists1) { $access1 = $item1.LastAccessTime }
                         if ($exists2) { $access2 = $item2.LastAccessTime }
 
-                        # Alias-Quelle: VHDX-Datei im Profilordner (Root),
-                        # z.B. "Profile_Mustermann.VHDX" -> "Mustermann".
-                        # Nur suchen, wenn der Eintragsname nicht schon
-                        # "Profile_*" lautet (sparst einen Netzwerk-Abruf).
-                        if ($n -notlike 'Profile_*') {
-                            if ($exists1) {
-                                $vh = Get-ChildItem -LiteralPath $item1.FullName -File -Filter "*.VHDX" -ErrorAction SilentlyContinue | Select-Object -First 1
-                                if ($null -ne $vh) { $aliasSrc = $vh.Name }
-                            }
-                            if ($aliasSrc -eq $n -and $exists2) {
-                                $vh = Get-ChildItem -LiteralPath $item2.FullName -File -Filter "*.VHDX" -ErrorAction SilentlyContinue | Select-Object -First 1
-                                if ($null -ne $vh) { $aliasSrc = $vh.Name }
-                            }
+                        # VHDX-Datei im Profilordner (Root), z.B. "Profile_Mustermann.VHDX".
+                        # Quelle fuer den Alias (z.B. "Mustermann") und fuer das Erstellungsdatum.
+                        if ($exists1) {
+                            $vh = Get-ChildItem -LiteralPath $item1.FullName -File -Filter "*.VHDX" -ErrorAction SilentlyContinue | Select-Object -First 1
+                            if ($null -ne $vh) { $vhdx = $vh }
+                        }
+                        if ($null -eq $vhdx -and $exists2) {
+                            $vh = Get-ChildItem -LiteralPath $item2.FullName -File -Filter "*.VHDX" -ErrorAction SilentlyContinue | Select-Object -First 1
+                            if ($null -ne $vh) { $vhdx = $vh }
+                        }
+                        if ($null -ne $vhdx) {
+                            $vhdxCreated = $vhdx.CreationTime
+                            if ($n -notlike 'Profile_*') { $aliasSrc = $vhdx.Name }
                         }
 
                         if ($DoSizes) {
@@ -1200,6 +1259,7 @@ function Get-ProfileListWithSizes {
                         Access2     = $access2
                         Exists1     = $exists1
                         Exists2     = $exists2
+                        Created     = $vhdxCreated
                     }
                 }
 '@
@@ -1308,6 +1368,9 @@ function Get-ProfileListWithSizes {
                     $formattedAccess = "-"
                 }
 
+                $createdDate      = if ($r.Created -is [datetime]) { $r.Created } else { $null }
+                $formattedCreated = if ($null -ne $createdDate) { $createdDate.ToString("dd.MM.yyyy HH:mm") } else { "-" }
+
                 [void]$profileData.Add([PSCustomObject]@{
                     Name                = $r.Name
                     Alias               = Get-ProfileAlias -Name $(if ($r.AliasSource) { $r.AliasSource } else { $r.Name })
@@ -1317,6 +1380,8 @@ function Get-ProfileListWithSizes {
                     FormattedSize       = $formattedSize
                     LastAccess          = $lastAccess
                     FormattedLastAccess = $formattedAccess
+                    Created             = $createdDate
+                    FormattedCreated    = $formattedCreated
                     Exists1             = [bool]$r.Exists1
                     Exists2             = [bool]$r.Exists2
                 })
@@ -1758,7 +1823,10 @@ function Update-ListView {
                 # WICHTIG: ::new() mit typisiertem Array verwenden - New-Object
                 # zerlegt das Argument-Array und wuerde den falschen Konstruktor
                 # (mit Color-Parameter) binden.
-                $cellTexts = [string[]]@($aliasText, $profile.Name, $profile.FormattedSize, $server1Text, $server2Text, $accessText)
+                $createdText = $profile.FormattedCreated
+                if ([string]::IsNullOrWhiteSpace($createdText)) { $createdText = "-" }
+
+                $cellTexts = [string[]]@($aliasText, $profile.Name, $profile.FormattedSize, $server1Text, $server2Text, $accessText, $createdText)
                 $item = [System.Windows.Forms.ListViewItem]::new($cellTexts)
                 $item.Tag = $profile.Name
 
@@ -1780,6 +1848,10 @@ function Update-ListView {
 
                 # Farbcodierung fuer das Zugriffsdatum (grau wenn keine Anzeige)
                 $item.SubItems[5].ForeColor = if ($accessText -eq "-") { [System.Drawing.Color]::Gray }
+                                              else { [System.Drawing.Color]::FromArgb(52, 73, 94) }
+
+                # Farbcodierung fuer das Erstellungsdatum (grau wenn keine VHDX gefunden)
+                $item.SubItems[6].ForeColor = if ($createdText -eq "-") { [System.Drawing.Color]::Gray }
                                               else { [System.Drawing.Color]::FromArgb(52, 73, 94) }
 
                 [void]$script:ListView.Items.Add($item)
@@ -1883,6 +1955,15 @@ function Sort-ProfileData {
                 }
                 else {
                     $Data | Sort-Object -Property @{Expression = { if ($null -eq $_.LastAccess) { [datetime]::MinValue } else { $_.LastAccess } }} -Descending
+                }
+            }
+            6 {
+                # Sortierung nach Erstellungsdatum der VHDX (leere Werte ans Ende)
+                if ($script:SortAscending) {
+                    $Data | Sort-Object -Property @{Expression = { if ($null -eq $_.Created) { [datetime]::MaxValue } else { $_.Created } }}
+                }
+                else {
+                    $Data | Sort-Object -Property @{Expression = { if ($null -eq $_.Created) { [datetime]::MinValue } else { $_.Created } }} -Descending
                 }
             }
             default {
@@ -2026,14 +2107,11 @@ function Update-DynamicLayout {
 
         # --- Profilpaar-Buttons (rechts ueber den Schaltern, gleiche Formel wie New-PairButtons) ---
         if ($script:PairButtons -and $script:PairButtons.Count -gt 0) {
-            $pairCount = $script:PairButtons.Count
-            $pairGap   = 6
-            $areaWidth = 603
-            $pairWidth = [Math]::Max(80, [Math]::Floor(($areaWidth - ($pairCount - 1) * $pairGap) / $pairCount))
-            for ($i = 0; $i -lt $pairCount; $i++) {
-                $btnX = [int]($right - ($pairCount * $pairWidth + ($pairCount - 1) * $pairGap) + $i * ($pairWidth + $pairGap))
-                $script:PairButtons[$i].Location = New-Object System.Drawing.Point($btnX, 82)
-                $script:PairButtons[$i].Size     = New-Object System.Drawing.Size([int]$pairWidth, 24)
+            $labels = @($script:PairButtons | ForEach-Object { [string]$_.Text })
+            $layout = @(Get-PairButtonLayout -Labels $labels -Right $right)
+            for ($i = 0; $i -lt $script:PairButtons.Count; $i++) {
+                $script:PairButtons[$i].Location = New-Object System.Drawing.Point($layout[$i].X, 82)
+                $script:PairButtons[$i].Size     = New-Object System.Drawing.Size($layout[$i].Width, 24)
             }
         }
 
@@ -2182,7 +2260,7 @@ function Initialize-GUI {
         # Hauptfenster (Design der WPF-Version, dynamisch resizable)
         # ====================================================
         $script:Form                 = New-Object System.Windows.Forms.Form
-        $script:Form.Text            = "  TS Profile Manager v2.6 - Profilverwaltung"
+        $script:Form.Text            = "  TS Profile Manager v2.7 - Profilverwaltung"
         $script:Form.Size            = New-Object System.Drawing.Size(1300, 740)
         $script:Form.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
         $script:Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
@@ -2412,6 +2490,7 @@ function Initialize-GUI {
                 3 { $col.TextAlign = [System.Windows.Forms.HorizontalAlignment]::Center }
                 4 { $col.TextAlign = [System.Windows.Forms.HorizontalAlignment]::Center }
                 5 { $col.TextAlign = [System.Windows.Forms.HorizontalAlignment]::Center }
+                6 { $col.TextAlign = [System.Windows.Forms.HorizontalAlignment]::Center }
             }
 
             [void]$script:ListView.Columns.Add($col)
@@ -2716,7 +2795,8 @@ function Initialize-GUI {
                                 @{N='Server1';E={$_.Exists1}},
                                 @{N='Server2';E={$_.Exists2}},
                                 @{N='Bytes';E={$_.TotalSize}},
-                                @{N='LetzterZugriff';E={ if ($_.LastAccess) { $_.LastAccess.ToString('dd.MM.yyyy HH:mm') } else { '' } }} |
+                                @{N='LetzterZugriff';E={ if ($_.LastAccess) { $_.LastAccess.ToString('dd.MM.yyyy HH:mm') } else { '' } }},
+                                @{N='Erstellt';E={ if ($_.Created) { $_.Created.ToString('dd.MM.yyyy HH:mm') } else { '' } }} |
                             Export-Csv -Path $saveDialog.FileName -NoTypeInformation -Encoding UTF8 -Delimiter ";"
 
                         [System.Windows.Forms.MessageBox]::Show(
@@ -2926,7 +3006,7 @@ function Initialize-GUI {
         # Bereich 7: Copyright (unten links, wie WPF-Version)
         # ====================================================
         $script:LabelCopyright           = New-Object System.Windows.Forms.Label
-        $script:LabelCopyright.Text      = "(c) 2025-2026 Rocco Ammon - TS Profile Manager v2.6"
+        $script:LabelCopyright.Text      = "(c) 2025-2026 Rocco Ammon - TS Profile Manager v2.7"
         $script:LabelCopyright.Location  = New-Object System.Drawing.Point(18, $copyY)
         $script:LabelCopyright.Size      = New-Object System.Drawing.Size(520, 16)
         $script:LabelCopyright.Font      = New-Object System.Drawing.Font("Segoe UI", 9)
@@ -3030,7 +3110,7 @@ function Start-ProfileManager {
     #>
     try {
         Write-Log -Message "=========================================="
-        Write-Log -Message "Starte TS Profile Manager v2.6"
+        Write-Log -Message "Starte TS Profile Manager v2.7"
         Write-Log -Message "=========================================="
         Write-Log -Message "Aktives Profilpaar: $($script:ServerPairs[$script:CurrentPairIndex].Name)"
         Write-Log -Message "Server 1: $script:ProfilePath1"
